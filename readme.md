@@ -19,10 +19,10 @@
 ## 算法与公式要点
 - 矩阵分解（带/不带偏置）  
   
-  $$
-  \min_{U,V,b_u,b_i}\sum_{(u,i)\in\Omega}(r_{ui}-\mu-b_u-b_i-U_u^\top V_i)^2
-  +\lambda\bigl(\|U\|_F^2+\|V\|_F^2+\|b_u\|_2^2+\|b_i\|_2^2\bigr)
-  $$
+$$
+\min_{U,V,b_u,b_i} \sum_{(u,i)\in\Omega} (r_{ui} - \mu - b_u - b_i - U_u^\top V_i)^2 + \lambda \left( \|U\|_F^2 + \|V\|_F^2 + \|b_u\|_2^2 + \|b_i\|_2^2 \right)
+$$
+
   `nc_mf_sgd`（SGD）、`nc_mf_nobias`（无偏置）、`nc_alt_block`/`nc_spec_alt`（交替最小二乘，谱初始化）。
 - 扰动 / 投影 PGD：`nc_perturb`（梯度步加随机扰动跳出鞍点），`nc_pgd_rankk`（梯度步后 SVD 截断到 rank-k）。
 - 凸方法（核/迹范数）：`c_softimpute`（交替填充+奇异值软阈值），`c_ista_nuc`/`c_fista_nuc`（梯度步+软阈值，FISTA 加动量），`c_fw_trace`（Frank-Wolfe 在迹范数球上逐步加 rank-1 原子）。  
