@@ -1,16 +1,16 @@
 # HW2: Low-Rank Matrix Completion on MovieLens-10M
 
-## 项目概览
+## 📌 项目概览
 - 数据：MovieLens 20M 的 10M 子集，5 折交叉验证（seed=0）。
 - 目标：比较凸方法与至少一种非凸低秩矩阵填充方法，评价指标为 RMSE。
 - 产出：RMSE 明细表与柱状图、收敛曲线、rank 扫描曲线、复现实验脚本。
 
-## 数据与划分（`code/prepare_folds_hash.py`）
+## 📊 数据与划分（`code/prepare_folds_hash.py`）
 - 统计（`result/folds_hash_ml_10m/meta.json`）：`n_users=69878`，`n_items=10677`，`n_ratings=10000054`，`k=5`，`seed=0`。
 - 划分：对键 `seed:uid:mid:ts` 做 blake2b 哈希并对 k 取模，保证每条评分唯一落入某折；用户/物品重映射为稠密索引，输出 `fold{i}.txt`（`u_idx \t i_idx \t rating`）和 `meta.json`。
 - 理论支撑：哈希分折近似均匀随机划分，减小人为偏置；稠密映射便于稀疏矩阵运算。
 
-## 训练与主要参数
+## ⚙️ 训练与主要参数
 - 通用：`device=cuda`，`batch_size=131072`，`seed=42`，`shuffle_chunk=1e6`。
 - 非凸 MF：`rank_mf=64`，`epochs_mf=30`，`lr_mf≈0.02`（文件写作 `Ir_mf`），`reg_mf=0.02`，`reg_bias=0.005`。
 - PGD/扰动/谱初始化：`rank_pgd=32`，`iters_pgd=30`，`eta_pgd=0.2`。
@@ -18,14 +18,22 @@
 
 ## 🧠 算法与数学模型
 
-### 1. 核心模型：矩阵分解 (Matrix Factorization)
+### 📐 1. 核心模型：矩阵分解 (Matrix Factorization)
 我们的目标是补全稀疏评分矩阵，在非凸设定下，优化目标包含预测误差与正则项：
 
 $$
 \min_{U,V,b_u,b_i} \sum_{(u,i)\in\Omega} (r_{ui} - \mu - b_u - b_i - U_u^\top V_i)^2 + \lambda \left( \|U\|_F^2 + \|V\|_F^2 + \|b_u\|_2^2 + \|b_i\|_2^2 \right)
 $$
 
-### 2. 已实现算法 (Implemented Algorithms)
+**公式含义说明：**
+*   $\Omega$：观测到的评分集合 (用户, 物品)。
+*   $r_{ui}$：用户 $u$ 对物品 $i$ 的真实评分。
+*   $\mu$：全局平均评分（Global Bias）。
+*   $b_u, b_i$：用户偏置项与物品偏置项，用于捕捉个体差异。
+*   $U_u, V_i$：用户与物品的 $k$ 维隐向量（Latent Vectors），$U_u^\top V_i$ 拟合交互分数。
+*   $\lambda$：正则化系数，用于约束参数范数，防止过拟合。
+
+### 💻 2. 已实现算法 (Implemented Algorithms)
 
 本项目包含两类主要方法：基于低秩分解的**非凸方法** (Non-convex) 与基于核范数的**凸优化方法** (Convex)。
 
@@ -53,7 +61,7 @@ $$
 *   **凸方法**：核范数是秩函数的最佳凸逼近，能获得全局最优解，但计算 SVD 成本较高。
 *   **非凸方法**：在过参数化 (Over-parameterization) 设定下，非凸分解的局部极小值往往接近全局最优，且在工程实践中通常能达到更低的 RMSE 和更高的计算效率。
 
-## 评测结果（5-fold RMSE）
+## 🏆 评测结果（5-fold RMSE）
 - 按 fold 列出（`result.md`）：  
 
 | 算法 | fold0 | fold1 | fold2 | fold3 | fold4 | 平均 |
@@ -81,7 +89,7 @@ $$
   - `c_fista_nuc`：RMSE 很高，动量+步长未满足 FISTA 收敛条件；凸理论保证收敛，但需 Lipschitz 步长或线搜索。  
   - `nc_mf_nobias` / `nc_alt_block` / `nc_spec_alt`：无偏置或弱初始化导致欠拟合，验证了偏置项与谱初始化的重要性。
 
-## 收敛性对比
+## 📉 收敛性对比
 - 汇总（30 轮完整日志，过滤短曲线）：`convergence_val_rmse.png`  
   ![convergence all](convergence_val_rmse.png)  
   - `c_softimpute` 单调下降且最低，近端软阈值保证稳定收敛；  
@@ -95,7 +103,7 @@ $$
   ![convergence fista](convergence_val_rmse_c_fista_nuc.png)  
   - 波动且高位，动量叠加在不合适步长下失去理论收敛保障，需减小步长或启用线搜索。
 
-## 超参数敏感性（rank 扫描）
+## 🔍 超参数敏感性（rank 扫描）
 - `rmse_vs_rank_nc_mf_sgd.png`：rank 10–20 最佳，过高 rank RMSE 上升且方差增大，过拟合迹象。  
   ![rank mf_sgd](rmse_vs_rank_nc_mf_sgd.png)
 - `rmse_vs_rank_nc_perturb.png`：低 rank 最优，rank 增大趋于变差。  
@@ -104,21 +112,7 @@ $$
   ![rank spec_alt](rmse_vs_rank_nc_spec_alt.png)
 - 理论意义：低秩约束是协同过滤的结构先验；rank 过高削弱先验、增加估计方差并诱发过拟合。
 
-## 复现实验
+## 🚀 复现实验
 1) 数据划分  
 ```bash
 python code/prepare_folds_hash.py --ratings /path/to/ratings.dat --out_dir result/folds_hash_ml_10m --k 5 --seed 0
-```
-2) 训练与评测  
-- 按 `s.md` 参数运行 5 折训练，得到 `history_fold*_*.json` 与 RMSE 结果。  
-3) 绘图  
-```bash
-python code/viz_all_convergence.py --fold_dir result/folds_hash_ml_10m
-# 生成 convergence_val_rmse.png 与 convergence_val_rmse_c_fista_nuc.png
-```
-
-## 结论
-- 非凸 MF（`nc_mf_sgd`）在本设定下性能最佳；凸基线 SoftImpute 稳健并收敛良好。  
-- 低 rank 更稳健；rank 过高会恶化 RMSE 或增大方差（过拟合）。  
-- `c_fista_nuc` 需调步长/阈值或延长迭代，否则难发挥凸理论优势。  
-- 后续可调参（步长、正则、rank）或改进初始化，缩小凸/非凸方法差距。 
