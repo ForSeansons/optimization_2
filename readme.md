@@ -16,17 +16,42 @@
 - PGD/扰动/谱初始化：`rank_pgd=32`，`iters_pgd=30`，`eta_pgd=0.2`。
 - 凸方法（核/迹范数）：`rank_cvx=32`，`iters_softimpute=30`，`lam_softimpute=0.5`；`iters_ista=30`，`lam_ista=0.5`，`eta_ista=0.1`；`iters_fista=30`，`lam_fista=0.5`，`eta_fista=0.1`；`iters_fw=30`，`tau_fw=50`。
 
-## 算法与公式要点
-- 矩阵分解（带/不带偏置）  
-  
+## 🧠 算法与数学模型
+
+### 1. 核心模型：矩阵分解 (Matrix Factorization)
+我们的目标是补全稀疏评分矩阵，在非凸设定下，优化目标包含预测误差与正则项：
+
 $$
 \min_{U,V,b_u,b_i} \sum_{(u,i)\in\Omega} (r_{ui} - \mu - b_u - b_i - U_u^\top V_i)^2 + \lambda \left( \|U\|_F^2 + \|V\|_F^2 + \|b_u\|_2^2 + \|b_i\|_2^2 \right)
 $$
 
-  `nc_mf_sgd`（SGD）、`nc_mf_nobias`（无偏置）、`nc_alt_block`/`nc_spec_alt`（交替最小二乘，谱初始化）。
-- 扰动 / 投影 PGD：`nc_perturb`（梯度步加随机扰动跳出鞍点），`nc_pgd_rankk`（梯度步后 SVD 截断到 rank-k）。
-- 凸方法（核/迹范数）：`c_softimpute`（交替填充+奇异值软阈值），`c_ista_nuc`/`c_fista_nuc`（梯度步+软阈值，FISTA 加动量），`c_fw_trace`（Frank-Wolfe 在迹范数球上逐步加 rank-1 原子）。  
-- 理论：核范数是秩的凸替代，可得全局最优；非凸分解在过参数化时局部极小接近全局，实践中常更优。
+### 2. 已实现算法 (Implemented Algorithms)
+
+本项目包含两类主要方法：基于低秩分解的**非凸方法** (Non-convex) 与基于核范数的**凸优化方法** (Convex)。
+
+#### 📉 非凸方法 (Non-Convex / Factorization)
+> 直接对低秩因子 $U, V$ 进行优化，计算效率高，适合大规模数据。
+
+*   **基础分解类**
+    *   **`nc_mf_sgd`**: 标准矩阵分解（带 $b_u, b_i$ 偏置），使用 SGD/Adam 优化。
+    *   **`nc_mf_nobias`**: 无偏置矩阵分解，仅保留核心交互项，用于纯粹的秩分析。
+*   **交替更新与初始化**
+    *   **`nc_alt_block`**: 交替最小二乘 (ALS) 风格的块更新策略。
+    *   **`nc_spec_alt`**: **两阶段法**。先使用**谱初始化 (Spectral Init)** 寻找优质起点，再进行交替优化，收敛更稳。
+*   **优化景观探索 (Landscape)**
+    *   **`nc_perturb`**: 扰动梯度下降。在损失平台期添加随机噪声，辅助模型**跳出鞍点**。
+    *   **`nc_pgd_rankk`**: 投影梯度下降 (PGD)。梯度步后执行截断 SVD，显式强制 $\text{rank}(X) \le k$。
+
+#### 🔮 凸方法 (Convex / Nuclear Norm)
+> 使用核范数 $\|X\|_*$ 作为秩的凸松弛，理论上保证全局最优。
+
+*   **`c_softimpute`**: **Soft-Impute**。经典的“填充+SVT”迭代，通过奇异值软阈值算子求解。
+*   **`c_ista_nuc` / `c_fista_nuc`**: 近端梯度下降及其加速版 (FISTA)。结合了梯度下降与软阈值投影，FISTA 利用动量加速收敛。
+*   **`c_fw_trace`**: **Frank-Wolfe** 算法。在迹范数球约束下，每一步贪心地添加一个 Rank-1 原子 (Top-1 奇异向量)。
+
+### 📝 理论要点
+*   **凸方法**：核范数是秩函数的最佳凸逼近，能获得全局最优解，但计算 SVD 成本较高。
+*   **非凸方法**：在过参数化 (Over-parameterization) 设定下，非凸分解的局部极小值往往接近全局最优，且在工程实践中通常能达到更低的 RMSE 和更高的计算效率。
 
 ## 评测结果（5-fold RMSE）
 - 按 fold 列出（`result.md`）：  
