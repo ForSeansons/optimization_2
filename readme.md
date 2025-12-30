@@ -19,7 +19,7 @@ $$
 
 ---
 
-# Part 1: HW2 - Low-Rank Matrix Completion on MovieLens-10M
+# 🎬 Part 1: HW2 - Low-Rank Matrix Completion on MovieLens-10M
 
 ## 📌 项目概览
 - **数据**：MovieLens 20M 的 10M 子集，5 折交叉验证（seed=0）。
@@ -113,12 +113,12 @@ $$
 
 ---
 
-# Part 2: ML-20M 数据集优化实验分析
+# 🎬 Part 2: ML-20M 数据集优化实验分析
 
-## 项目概述
+## 📌 项目概述
 本项目针对 ML-20M 大规模推荐系统数据集，基于低秩矩阵分解（LowRankSVD）实现 GPU 加速的交叉验证实验，核心分析算法收敛性、超参数（学习率/正则化）影响、秩与 RMSE 关系等关键维度，验证 `nc_mf_sgd` 方法在大规模数据集上的性能。
 
-## 实验环境与核心配置
+## 🖥️ 实验环境与核心配置
 ### 硬件/软件环境
 - 计算资源：GPU（CUDA 加速）
 - 核心依赖：PyTorch（张量计算）、NumPy（统计分析）
@@ -134,7 +134,7 @@ $$
 | 学习率（lr_mf） | 0.01 |
 | 正则化系数 | reg_mf=0.02、reg_bias=0.005 |
 
-## 核心方法：LowRankSVD 低秩预测器
+## 🧩核心方法：LowRankSVD 低秩预测器
 本实验的核心预测逻辑基于低秩矩阵分解实现，`LowRankSVD` 类通过用户/物品嵌入矩阵与奇异值加权，完成评分预测：
 ```python
 @dataclass
@@ -149,11 +149,11 @@ class LowRankSVD(Predictor):
         return self.mu + (self.U[u] * self.S.unsqueeze(0) * self.V[i]).sum(dim=-1)
 ```
 
-## 数据与划分
+### 数据与划分
 - **统计**：`n_users=138493`，`n_items=26744`，`n_ratings≈20M`，`k=5`，`seed=42`。
 - **划分方法**：同 10M 实验，对键 `seed:uid:mid:ts` 做 blake2b 哈希再对 k 取模，确保每条评分唯一落入某折，且用户/物品重映射为稠密索引，方便 GPU 稀疏操作。
 
-## 评测结果（5-fold RMSE）
+## 🏆 评测结果（5-fold RMSE）
 
 | 算法 | fold0 | fold1 | fold2 | fold3 | fold4 | 平均 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -176,7 +176,7 @@ class LowRankSVD(Predictor):
 - `nc_spec_alt` 与 `c_fw_trace` 精度较弱，FW 子线性收敛限制，谱初始化+交替在大数据上收益有限。
 - `c_fista_nuc` 依旧出现高 RMSE，动量+步长未满足加速条件；需调小步长或引入线搜索。
 
-## 收敛性与参数分析
+## 📉 收敛性与参数分析
 - **收敛性**  
   - 汇总（30 轮）：
     ![convergence all 20M](convergence_val_rmse_20m.png)  
