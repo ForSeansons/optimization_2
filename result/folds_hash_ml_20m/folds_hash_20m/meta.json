@@ -1,0 +1,11 @@
+{
+  "dataset": "ml-20m",
+  "ratings_path": "/root/convmf/ml-20m/ratings.csv",
+  "n_users": 138493,
+  "n_items": 26744,
+  "n_ratings": 20000263,
+  "n_filtered": 0,
+  "k": 5,
+  "seed": 0,
+  "format": "ml20m_csv"
+}

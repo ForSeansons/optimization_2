@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "fold_dir": "./ml-20m/folds_hash_20m",
+    "device": "cuda",
+    "batch_size": 131072,
+    "seed": 42,
+    "methods": [
+      "nc_mf_sgd"
+    ],
+    "n_users": 138493,
+    "n_items": 26744,
+    "params": {
+      "fold_dir": "./ml-20m/folds_hash_20m",
+      "device": "cuda",
+      "batch_size": 131072,
+      "seed": 42,
+      "shuffle_chunk": 1000000,
+      "rank_mf": 64,
+      "epochs_mf": 4,
+      "lr_mf": 0.05,
+      "reg_mf": 0.005,
+      "reg_bias": 0.005,
+      "rank_pgd": 32,
+      "iters_pgd": 30,
+      "eta_pgd": 0.2,
+      "rank_cvx": 32,
+      "iters_softimpute": 30,
+      "lam_softimpute": 0.5,
+      "iters_ista": 30,
+      "lam_ista": 0.5,
+      "eta_ista": 0.1,
+      "iters_fista": 30,
+      "lam_fista": 0.5,
+      "eta_fista": 0.1,
+      "iters_fw": 30,
+      "tau_fw": 50.0,
+      "methods": [
+        "nc_mf_sgd"
+      ]
+    }
+  },
+  "results": {
+    "nc_mf_sgd": [
+      0.8840395591779083,
+      0.8828028980231505,
+      0.882537521553909,
+      0.8818126707617602,
+      0.8847834326323644
+    ]
+  },
+  "summary": {
+    "nc_mf_sgd": {
+      "mean": 0.8831952164298185,
+      "std": 0.0011972107363112934,
+      "folds": 5
+    }
+  }
+}
