@@ -20,18 +20,8 @@
 
 ### 📐 1. 核心模型：矩阵分解 (Matrix Factorization)
 我们的目标是补全稀疏评分矩阵，在非凸设定下，优化目标包含预测误差与正则项：
+<img width="633" height="341" alt="模型公式" src="https://github.com/user-attachments/assets/be342303-9779-4cf8-94d9-89dd2ac57a16" />
 
-$$
-\min_{U,V,b_u,b_i} \sum_{(u,i)\in\Omega} (r_{ui} - \mu - b_u - b_i - U_u^\top V_i)^2 + \lambda \left( \|U\|_F^2 + \|V\|_F^2 + \|b_u\|_2^2 + \|b_i\|_2^2 \right)
-$$
-
-**公式含义说明：**
-*   $\Omega$：观测到的评分集合 (用户, 物品)。
-*   $r_{ui}$：用户 $u$ 对物品 $i$ 的真实评分。
-*   $\mu$：全局平均评分（Global Bias）。
-*   $b_u, b_i$：用户偏置项与物品偏置项，用于捕捉个体差异。
-*   $U_u, V_i$：用户与物品的 $k$ 维隐向量（Latent Vectors），$U_u^\top V_i$ 拟合交互分数。
-*   $\lambda$：正则化系数，用于约束参数范数，防止过拟合。
 
 ### 💻 2. 已实现算法 (Implemented Algorithms)
 
